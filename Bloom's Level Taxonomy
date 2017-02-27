@@ -1,0 +1,206 @@
+package myDemoProject;
+import java.applet.Applet;
+import java.awt.*;
+import java.io.File;
+import java.io.FileInputStream;
+
+import org.apache.commons.lang3.ArrayUtils;
+//import org.apache.poi.hwpf.extractor.*;
+//import org.apache.poi.util.SystemOutLogger;
+import org.apache.poi.xwpf.usermodel.*;
+
+import java.util.*;
+import java.util.List;
+import java.util.regex.*;
+import org.apache.poi.xwpf.usermodel.*;
+public  class taxonomy extends Applet{
+	static String[] co = {"classify","explain","indicate","locate","recognize","describe","discuss","express"};
+	static String[] kn = {"arrange","recognize","relate","label","list","memorize","recall","define"};
+	static String[] ap = {"demonstrate","sketch","illustrate","operate","practice","schedule","predict","interpret","employ","use","write"};
+	static String[] an = {"analyze","appraise","distinction","calculate","categorize","differentiate","discriminate","distinguish","how","examine"};
+	static String[] ev = {"rate","appraise","judge","predict","assess","attach","compare","defend","choose","estimate","compare","justify"};
+	static String[] sn = {"assemble","create","design","collect","compose","develop","propose","write","organize","plan"};
+	static String patternQuestion = "^[a-z]";
+	static Pattern checkQPattern = Pattern.compile(patternQuestion);
+	static String patternMarks = "^(#M[0-9])";
+	static Pattern checkMarksPattern = Pattern.compile(patternMarks);
+	
+	static double[] k={0,0,0,0,0,0};
+	static String[] s={"kn" ,"an","ap","co","sn","ev"};
+	static int x=200, y=200, w=150, h=150;
+	int startAngle;
+	int[] degrees = {0,0,0,0,0,0};
+	int sum=0;
+	
+	
+	public static void readDocxFile() {
+		int marks;
+		int fl=0;
+		int mar[]=new int[7];
+		String keyw[]=new String[10];
+		int sum=0,z=0;
+		try{
+			File file = new File("H:/qp.docx");
+			FileInputStream fis = new FileInputStream(file.getAbsolutePath());
+			XWPFDocument document = new XWPFDocument(fis);
+			List<XWPFParagraph> paragraphs = document.getParagraphs();
+			try{
+				for(XWPFParagraph para : paragraphs) {
+					Matcher myMatcher = checkQPattern.matcher(para.getText());
+					if(myMatcher.find())
+					{
+						System.out.println(para.getText());
+						String[] myWords = para.getText().split("\\s");
+						int valkn=0,valco=0,valap=0,valev=0,valsn=0,valan=0;
+						for(String eachWord : myWords){
+							
+							//To check type of Question
+							if(ArrayUtils.contains(kn, eachWord.toLowerCase())){
+								System.out.println(eachWord + " KN");
+								valkn++;
+								fl=1;
+								keyw[z++]=eachWord;
+							}
+							else if(ArrayUtils.contains(an, eachWord.toLowerCase())){
+								System.out.println(eachWord + " AN");
+								valan++;
+								fl=2;
+								keyw[z++]=eachWord;
+							}
+							else if(ArrayUtils.contains(ap, eachWord.toLowerCase())){
+								System.out.println(eachWord + " AP");
+								valap++;
+								fl=3;
+								keyw[z++]=eachWord;
+							}
+							else if(ArrayUtils.contains(co, eachWord.toLowerCase())){
+								System.out.println(eachWord + " CO");
+								valco++;
+								fl=4;
+								keyw[z++]=eachWord;
+							}
+							else if(ArrayUtils.contains(sn, eachWord.toLowerCase())){
+								System.out.println(eachWord + " SN");
+								valsn++;
+								fl=5;
+								keyw[z++]=eachWord;
+							}
+							else if(ArrayUtils.contains(ev, eachWord.toLowerCase())){
+								System.out.println(eachWord + " EV");
+								valev++;
+								fl=6;
+								keyw[z++]=eachWord;
+							}
+							else{
+								Matcher myMatcherMarks = checkMarksPattern.matcher(eachWord);
+								if(myMatcherMarks.find()){
+									marks = (Integer.parseInt(eachWord.substring(2)));
+									if(z==1)
+									{if(fl==1)
+									{mar[1]+=marks;		System.out.println("mar1 "+mar[1]);							
+									}
+									if(fl==2)
+									{mar[2]+=marks;	System.out.println("mar2 "+mar[2]);									
+									}
+									if(fl==3)
+									{mar[3]+=marks;		System.out.println("mar3 "+mar[3]);								
+									}
+									if(fl==4)
+									{mar[4]+=marks;		System.out.println("mar4 "+mar[4]);								
+									}
+									if(fl==5)
+									{mar[5]+=marks;		System.out.println("mar5 "+mar[5]);								
+									}
+									if(fl==6)
+									{mar[6]+=marks;		System.out.println("mar6 "+mar[6]);								
+									}
+									z=0;}
+									if(keyw[0]=='Calculate' && keyw[1]=='analyse')
+									{f1=2;
+									}
+									}
+									
+							}}
+							
+						}
+				 
+						//Question question = new Question(para.getText(), valco, valkn, valap, valan, valev, valsn, marks);
+					}}
+					for(int i=1;i<7;i++){
+						System.out.println(mar[i]);
+						sum=sum+mar[i];
+					 }
+					for(int j=1;j<=6;j++)
+					{ 
+						k[j-1]=100.0*mar[j]/sum;
+						System.out.println(s[j-1]+" "+k[j-1]);
+					}
+				
+			}
+			catch(NullPointerException e){
+				System.out.println("Error 1 " + e);
+			}
+		}
+		catch(Exception e){
+				System.out.println("error");
+		}
+	}
+	
+	
+
+//	public static void main(String[] args)
+//	{
+//		
+//	}
+	
+	public void paint(Graphics myGraphics){
+		int[] degrees = {0,0,0,0,0,0};
+		int sum=0;
+		
+		readDocxFile();
+		
+		for(int i=0; i<6; i++){
+			degrees[i] = (int)(k[i] * 360 / 100);
+			sum+=degrees[i];
+		}
+		
+		if(sum<360){
+			for(int i=0; i<6; i++){
+				if(degrees[i]!=0){
+					degrees[i]++;
+					break;
+				}
+			}
+		}
+		
+		startAngle = 0;
+		myGraphics.setColor(Color.green);
+		System.out.println("Start Angle = " + startAngle + "Degree = " + degrees[0]);
+		myGraphics.fillArc(x, y, w, h, startAngle, degrees[0]);
+		
+		startAngle=startAngle+degrees[0];
+		myGraphics.setColor(Color.orange);
+		System.out.println("Start Angle = " + startAngle + "Degree = " + degrees[1]);
+		myGraphics.fillArc(x, y, w, h, startAngle, degrees[1]);
+		
+		startAngle=startAngle+degrees[1];
+		myGraphics.setColor(Color.red);
+		System.out.println("Start Angle = " + startAngle + "Degree = " + degrees[2]);
+		myGraphics.fillArc(x, y, w, h, startAngle, degrees[2]);
+		
+		startAngle=startAngle+degrees[2];
+		myGraphics.setColor(Color.black);
+		System.out.println("Start Angle = " + startAngle + "Degree = " + degrees[3]);
+		myGraphics.fillArc(x, y, w, h, startAngle, degrees[3]);
+		
+		startAngle=startAngle+degrees[3];
+		myGraphics.setColor(Color.magenta);
+		System.out.println("Start Angle = " + startAngle + "Degree = " + degrees[4]);
+		myGraphics.fillArc(x, y, w, h, startAngle, degrees[4]);
+		
+		startAngle=startAngle+degrees[4];
+		myGraphics.setColor(Color.yellow);
+		System.out.println("Start Angle = " + startAngle + "Degree = " + degrees[5]);
+		myGraphics.fillArc(x, y, w, h, startAngle, degrees[5]);
+	}
+}
